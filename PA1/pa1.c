@@ -63,7 +63,7 @@ static void free_memory(void *ptr)
 // record_arr
 size_t get_num_records()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // insert record r at the end of the record array
@@ -74,7 +74,7 @@ size_t get_num_records()
 // make record_arr point to the new buffer
 void insert_record(struct record r)
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // return the record corresponding to the uid
@@ -84,7 +84,7 @@ void insert_record(struct record r)
 // return a dummy record with status == -1
 struct record search_record_linear(char uid[MAX_LEN])
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // return the record corresponding to the uid
@@ -94,7 +94,7 @@ struct record search_record_linear(char uid[MAX_LEN])
 // return a dummy record with status == -1
 struct record search_record_binary(char uid[MAX_LEN])
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // delete record correspondig to the uid
@@ -112,49 +112,49 @@ struct record search_record_binary(char uid[MAX_LEN])
 // make record_arr point to the new array
 struct record delete_record(char uid[MAX_LEN])
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // delete all records in the record_arr
 // free record_arr
 void delete_all_records()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // sort the record array using quick sort
 // use cmp_record implementaion to compare two records
 void sort_records_quick()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // sort the record_arr using merge sort
 // use cmp_record implementaion to compare two records
 void sort_records_merge()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // sort the record_arr using selection sort
 // use cmp_record implementaion to compare two records
 void sort_records_selection()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // return the number of records corresponding to the input name
 // use linear search to obtain the results
 size_t get_num_records_with_name_linear(char name[MAX_LEN])
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // implement quick sort algorithm to sort the 
 // record_arr using name as key
 void rearrange_data()
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }
 
 // return the number of records corresponding to the input name
@@ -163,5 +163,5 @@ void rearrange_data()
 // data using name as key before making these queries
 size_t get_num_records_with_name_binary(char name[MAX_LEN])
 {
-	NOT_IMPLEMENTED;
+  NOT_IMPLEMENTED;
 }

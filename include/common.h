@@ -10,14 +10,15 @@
 
 #define MAX_LEN 16
 #define MAX_MSG_LEN 128
-#define MSG_SCALE 3
+#define MSG_SCALE (7.0 / 22.0)
 #define PI (22.0 / 7.0)
 #define INVALID_STATUS (-1)
+#define MAX_PARTITION 3
 
 
 struct trie_node;
-struct list_tri;
-struct list_rec;
+struct list_posts;
+struct list_records;
 
 struct location {
 	double lat;
@@ -42,10 +43,10 @@ struct record {
 	struct location loc;
 
   /* list of posts */
-  struct list_tri *posts;
+  struct list_posts *posts;
 
   /* list of friends */
-  struct list_rec *friends;
+  struct list_records *friends;
 
 	/* needed for shortest Path */
 	int status;
@@ -58,6 +59,15 @@ struct record {
   struct record *parent;
 };
 
+#define DELETED 1
+#define POSTED  2
+
+struct list_events {
+	int action;
+	struct record *record;
+	struct list_events *next;
+};
+
 struct trie_node {
   char val;
   /*first is the first child of trie node */
@@ -66,28 +76,25 @@ struct trie_node {
   struct trie_node *next;
 
   /* If the current trie node is last character
-   * of a post, active is the list of all the users 
-   * who have posted this message, but haven't deleted yet.
+   * of a messagae, history is the list of all the events
+   * which took place on the message (i.e., post or delete).
+	 * The list elements are organized in the order in which the
+	 * events took place. The first element contains the most 
+	 * recent event.
 	 */
-  struct list_rec *active;
-
-  /* If the current trie node is last character
-	 * of a post, deleted is the list of all the users
-   * who have deleted this message after posting. 
-   */
-  struct list_rec *deleted;
+  struct list_events *history;
 };
 
-// list of trie_nodes
-struct list_tri {
+// list of trie_nodes corresponding to messages
+struct list_posts {
   struct trie_node *node;
-  struct list_tri *next;
+  struct list_posts *next;
 };
 
 // list of record pointers
-struct list_rec {
-  struct record *rec;
-  struct list_rec *next;
+struct list_records {
+  struct record *record;
+  struct list_records *next;
 };
 
 void *__mymalloc(size_t size);
@@ -101,7 +108,7 @@ void verify_size_delete(struct record *arr, int num_records);
 void verify_memory_leak();
 void start_time(struct timeval *start);
 unsigned long end_time(struct timeval *start);
-void create_msg(char msg[MAX_MSG_LEN], int id, int size);
+void create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter);
 void initialize_hash_tables(size_t size);
 void delete_msg(int id, int size);
 double distance(struct location *loc1, struct location *loc2);
@@ -109,5 +116,14 @@ void create_name(char name[MAX_LEN], int seed);
 void check_array_is_sorted_by_uid(struct record *record_arr, size_t num_record, size_t chksum);
 void check_array_is_sorted_by_name(struct record *record_arr, size_t num_record, size_t chksum);
 void verify_chksum(struct record *record_arr, size_t num_record, size_t chksum);
+size_t check_avl_property(struct record *root, int *height);
+size_t check_bst_property(struct record *root);
+int generate_part_uid(char uid[MAX_LEN], int idx, int part, int size);
+int uid_to_idx(char uid[MAX_LEN]);
+void verify_checksum_flist(size_t check_sum, struct list_records *flist);
+int get_rand(int seed, int max);
+void update_checksum_flist(size_t *check_sum_arr, int size, struct list_records *flist, char uid[MAX_LEN]);
+void verify_memory_usage_tree(size_t size, size_t num_friends);
+void print_total_allocations(int size);
 
 #endif
