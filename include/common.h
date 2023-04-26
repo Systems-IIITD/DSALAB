@@ -32,7 +32,7 @@ struct record {
   char name[MAX_LEN];
   /* a character array of 16 characters
    * not-necessarily terminated with '\0'
-   * a uid may conatin multiple '\0''s
+   * a uid may contain multiple '\0''s
    * anywhere in the character array
    */
   char uid[MAX_LEN];

@@ -106,11 +106,10 @@ struct list_records *get_friends_list_bst(char uid[MAX_LEN])
 {
 }
 
-// Find the record (say n) corresponding to uid in the BST.
+// Delete the record (say n) corresponding to uid from the BST.
 // Remove n from the lists of friends of other records
 // and release the memory for the linked list nodes.
 // Release memory for all the nodes in the list of friends of n.
-// Delete node n from the BST.
 // Return a copy of the value of the deleted node.
 // If the node is not present, return a dummy record
 // with -1 in the status field.
@@ -135,11 +134,10 @@ struct list_records *get_friends_list_avl(char uid[MAX_LEN])
 {
 }
 
-// Find the record (say n) corresponding to uid in the AVL tree.
+// Delete the record (say n) corresponding to uid from the AVL tree.
 // Remove n from the lists of friends of other records
 // and release the memory for the linked list nodes.
 // Release memory for all the nodes in the list of friends of n.
-// Delete node n from the BST.
 // Return a copy of the value of the deleted node.
 // If the node is not present, return a dummy record
 // with -1 in the status field.
@@ -165,6 +163,8 @@ void destroy_avl()
 // head of the linked list of friends of a given user.
 // To make the user with record A a friend of the user with record B, 
 // add A to B's list of friends and add B to A's list of friends.
+// Return 1 if uid1 and uid2 are already friends before this call.
+// Return 0 if they become friends during this call.
 int make_friends_bst(char uid1[MAX_LEN], char uid2[MAX_LEN])
 {
 }
@@ -175,6 +175,8 @@ int make_friends_bst(char uid1[MAX_LEN], char uid2[MAX_LEN])
 // head of the linked list of friends of a given user.
 // To make the user with record A a friend of the user with record B, 
 // add A to B's list of friends and add B to A's list of friends.
+// Return 1 if uid1 and uid2 are already friends before this call.
+// Return 0 if they become friends during this call.
 int make_friends_avl(char uid1[MAX_LEN], char uid2[MAX_LEN])
 {
 }
