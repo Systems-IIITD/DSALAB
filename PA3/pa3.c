@@ -8,13 +8,13 @@ size_t num_msgs = 0;
 // don't modify this function
 static void *allocate_memory(size_t size)
 {
-	return __mymalloc(size);
+  return __mymalloc(size);
 }
 
 // don't modify this function
 static void free_memory(void *ptr)
 {
-	__myfree(ptr);
+  __myfree(ptr);
 }
 
 // ---------------- Add your code below this line ----------------- //
@@ -106,7 +106,7 @@ void delete_all_posts(struct record *r)
 // in the trie
 int read_latest_post(struct record *r, char msg[MAX_MSG_LEN])
 {
-	return 0;
+  return 0;
 }
 
 // Delete all the memory allocated for the trie and
