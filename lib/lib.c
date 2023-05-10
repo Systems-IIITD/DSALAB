@@ -34,6 +34,10 @@ struct __trie_node {
 static struct __trie_node *__trie_root = NULL;
 static size_t total_allocations = 0;
 
+size_t get_alloc_size() {
+  return total_allocations;
+}
+
 void print_total_allocations(int size)
 {
   const size_t max_vid = (MSG_SCALE * size) + 1;
@@ -119,8 +123,22 @@ static struct obj_header* get_header(void *ptr)
   return obj;
 }
 
+int pa3_enabled = 0;
+void enable_pa3() {
+  pa3_enabled = 1;
+}
+
 void *__mymalloc(size_t size)
 {
+  if (pa3_enabled == 1) {
+    if (size != sizeof(struct trie_node) &&
+        size != sizeof(struct list_posts) &&
+        size != sizeof(struct list_events)) {
+      printf("Allocations are only allowed for struct trie_node \
+          or struct list_posts or struct list_events\n");
+      assert(0);
+    }
+  }
   struct obj_header *obj = (struct obj_header*)malloc(size + sizeof(struct obj_header));
   if (obj == NULL) {
     printf("allocation faild: size:%zd\n", size);
@@ -394,33 +412,6 @@ static char __posts[][MAX_MSG_LEN] =
   "Don't think that I don't know that this assignment scares the hell out of you.",
 };
 
-
-size_t *__msg_count_vid = NULL;
-size_t *__msg_count_id = NULL;
-size_t *__msg_alive = NULL;
-size_t *__msg_dead = NULL;
-
-void initialize_hash_tables(size_t size)
-{
-  const size_t scaled_size = MSG_SCALE * size * sizeof(size_t);
-
-  __msg_count_id = malloc(size * sizeof(size_t));
-  assert(__msg_count_id);
-  memset(__msg_count_id, 0, size * sizeof(size_t));
-
-  __msg_count_vid = malloc(scaled_size);
-  assert(__msg_count_vid);
-  memset(__msg_count_vid, 0, scaled_size);
-
-  __msg_alive = malloc(scaled_size);
-  assert(__msg_alive);
-  memset(__msg_alive, 0, scaled_size);
-
-  __msg_dead = malloc(scaled_size);
-  assert(__msg_dead);
-  memset(__msg_dead, 0, scaled_size);
-}
-
 static int get_vid(int id, int size, int iter) {
   const size_t max_vid = (MSG_SCALE * size) + 1;
   __seed = id + (iter * size);
@@ -428,9 +419,34 @@ static int get_vid(int id, int size, int iter) {
   return id;
 }
 
-void create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter)
+#define VID_LEN 8
+
+int read_vid(char msg[MAX_MSG_LEN]) {
+  int i;
+  int factor = 1;
+  int ret = 0;
+
+  for (i = 0; i < VID_LEN; i++) {
+    assert(msg[i] >= '0' && msg[i] <= '9');
+    ret += (msg[i] - '0') * factor;
+    factor *= 10;
+  }
+  return ret;
+}
+
+static void embed_vid(char msg[MAX_MSG_LEN], int vid) {
+  int i;
+
+  for (i = 0; i < VID_LEN; i++) {
+    msg[i] = (vid % 10) + '0';
+    vid = vid / 10;
+  }
+}
+
+int create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter)
 {
   const int num_msgs = sizeof(__posts)/ sizeof(__posts[0]);
+  const int max_msg_len = MAX_MSG_LEN - VID_LEN;
   int vid = get_vid(id, size, iter);
   __seed = vid;
   int i1 = __rand() % num_msgs;
@@ -439,11 +455,14 @@ void create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter)
   int i4 = __rand() % num_msgs;
   int i5 = __rand() % num_msgs;
 
-  int len = snprintf(msg, MAX_MSG_LEN, "%s %s %s %s %s", 
+  embed_vid(msg, vid);
+
+  int len = snprintf(&msg[VID_LEN], max_msg_len, "%s %s %s %s %s",
       __posts[i1], __posts[i2], __posts[i3], __posts[i4], __posts[i5]);
-  if (len > MAX_MSG_LEN) {
-    len = MAX_MSG_LEN - 1;
+  if (len >= max_msg_len) {
+    len = max_msg_len - 1;
   }
+  len += VID_LEN;
   assert(msg[len] == '\0');
   int i;
   for (i = len-1; i > 0; i--) {
@@ -452,19 +471,8 @@ void create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter)
     }
     msg[i] = '\0';
   }
+  return vid;
 }
-
-void delete_msg(int id, int size)
-{
-  const int num_msgs = sizeof(__posts)/ sizeof(__posts[0]);
-  if (__msg_count_id[id] > 0) {
-    __msg_count_id[id]--;
-    //int vid = get_vid(id, size);
-    //__msg_alive[vid] -= fast_uid(id);
-    //__msg_dead[vid] += fast_uid(id);
-  }
-}
-
 
 static int __cmp_name(char *name1, char *name2)
 {
@@ -581,7 +589,7 @@ size_t check_bst_property(struct record *root) {
 }
 
 size_t check_avl_property(struct record *root, int *height) {
-  int h = 0, left_height, right_height;
+  int h = -1, left_height, right_height;
   size_t check_sum = 0;
 
   if (root != NULL) {
@@ -679,4 +687,30 @@ void verify_memory_usage_tree(size_t size, size_t num_friends)
     printf("Use allocate_memory and free_mmeory APIs to allocate and free nodes for the nodes in friend list\n");
     assert(0);
   }
+}
+
+int get_checksum_str(char msg[MAX_MSG_LEN]) {
+  int i = 0;
+  int ret = 0;
+  while (msg[i] != '\0') {
+    if (msg[i] >= 'A' && msg[i] <= 'Z') {
+      ret += msg[i] - 'A';
+    }
+    else if (msg[i] >= 'a' && msg[i] <= 'z') {
+      ret += msg[i] - 'a';
+    }
+    else {
+      ret += msg[i];
+    }
+    i++;
+  }
+  return ret;
+}
+
+void verify_checksum_str(size_t *check_sum_arr, int id, size_t checksum) {
+  assert(check_sum_arr[id] == checksum);
+}
+
+void update_checksum_str(size_t *check_sum_arr, int id, size_t checksum) {
+  check_sum_arr[id] += checksum;
 }

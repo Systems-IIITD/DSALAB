@@ -21,8 +21,8 @@ struct list_posts;
 struct list_records;
 
 struct location {
-	double lat;
-	double lon;
+  double lat;
+  double lon;
 };
 
 struct record {
@@ -40,7 +40,7 @@ struct record {
   int age;
 
   /* location */
-	struct location loc;
+  struct location loc;
 
   /* list of posts */
   struct list_posts *posts;
@@ -48,9 +48,9 @@ struct record {
   /* list of friends */
   struct list_records *friends;
 
-	/* needed for shortest Path */
-	int status;
-	struct record *pred;
+  /* needed for shortest Path */
+  int status;
+  struct record *pred;
 
   /* needed for the tree data-structure */
   int height;
@@ -63,25 +63,28 @@ struct record {
 #define POSTED  2
 
 struct list_events {
-	int action;
-	struct record *record;
-	struct list_events *next;
+  int action;
+  struct record *record;
+  struct list_events *next;
 };
 
 struct trie_node {
   char val;
-  /*first is the first child of trie node */
+  /*child is the first child of trie node */
   struct trie_node *child;
-  /* next is a sibling of a trie node */
+  /* next is the right sibling of a trie node */
   struct trie_node *next;
+
+  /* parent of this trie node */
+  struct trie_node *parent;
 
   /* If the current trie node is last character
    * of a messagae, history is the list of all the events
    * which took place on the message (i.e., post or delete).
-	 * The list elements are organized in the order in which the
-	 * events took place. The first element contains the most 
-	 * recent event.
-	 */
+   * The list elements are organized in the order in which the
+   * events took place. The first element contains the most 
+   * recent event.
+   */
   struct list_events *history;
 };
 
@@ -108,7 +111,7 @@ void verify_size_delete(struct record *arr, int num_records);
 void verify_memory_leak();
 void start_time(struct timeval *start);
 unsigned long end_time(struct timeval *start);
-void create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter);
+int create_msg(char msg[MAX_MSG_LEN], int id, int size, int iter);
 void initialize_hash_tables(size_t size);
 void delete_msg(int id, int size);
 double distance(struct location *loc1, struct location *loc2);
@@ -125,5 +128,11 @@ int get_rand(int seed, int max);
 void update_checksum_flist(size_t *check_sum_arr, int size, struct list_records *flist, char uid[MAX_LEN]);
 void verify_memory_usage_tree(size_t size, size_t num_friends);
 void print_total_allocations(int size);
+size_t get_alloc_size();
+int get_checksum_str(char msg[MAX_MSG_LEN]);
+void verify_checksum_str(size_t *check_sum_arr, int id, size_t checksum);
+void update_checksum_str(size_t *check_sum_arr, int id, size_t checksum);
+void enable_pa3();
+int read_vid(char msg[MAX_MSG_LEN]);
 
 #endif
