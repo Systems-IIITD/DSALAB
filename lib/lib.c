@@ -730,14 +730,14 @@ void update_checksum_str(size_t *check_sum_arr, int id, size_t checksum) {
 
 void verify_sssp(struct record *r)
 {
-	struct list_records *lr = r->friends;
+  struct list_records *lr = r->friends;
   struct record *t;
   double dist;
   int visited;
 
   r->status = 0;
 
-	while (lr) {
+  while (lr) {
     t = lr->record;
     dist = r->distance + distance(&r->loc, &t->loc);
     assert(t->distance <= dist);
@@ -745,31 +745,31 @@ void verify_sssp(struct record *r)
     if (t->verify != 2) {
       t->verify = (t->distance == dist) ? 2 : 1;
     }
-		if (!visited) {
+    if (!visited) {
       verify_sssp(t);
-		}
-		lr = lr->next;
-	}
+    }
+    lr = lr->next;
+  }
 }
 
 void verify_sssp1(struct record *r)
 {
-	struct list_records *lr = r->friends;
+  struct list_records *lr = r->friends;
   struct record *t;
   int visited;
 
-	while (lr) {
+  while (lr) {
     t = lr->record;
     visited = t->verify == 3;
     assert(t->verify >= 2);
     if (t->verify == 2) {
       t->verify = 3;
     }
-		if (!visited) {
+    if (!visited) {
       verify_sssp1(t);
-		}
-		lr = lr->next;
-	}
+    }
+    lr = lr->next;
+  }
 }
 
 static void verify_path(struct record *r)
@@ -787,19 +787,19 @@ static void verify_path(struct record *r)
 
 void reset_verify(struct record *r)
 {
-	struct list_records *lr = r->friends;
+  struct list_records *lr = r->friends;
   struct record *t;
 
   r->verify = 0;
   assert(r->status == 0);
-	while (lr) {
+  while (lr) {
     t = lr->record;
-		if (t->verify != 0) {
+    if (t->verify != 0) {
       verify_path(t);
       reset_verify(t);
-		}
-		lr = lr->next;
-	}
+    }
+    lr = lr->next;
+  }
 }
 
 void check_status_and_verify(struct record *record_arr, int size)
@@ -848,56 +848,56 @@ void verify_memory_usage_graph(size_t num_friends)
 
 size_t getDataSecSz(char *path)
 {
-	static size_t DsecSz = 0;
+  static size_t DsecSz = 0;
 
-	if (DsecSz != 0)
-	{
-		return DsecSz;
-	}
+  if (DsecSz != 0)
+  {
+    return DsecSz;
+  }
 
-	int fd = open(path, O_RDONLY);
-	if (fd == -1) {
-		return 0;
-	}
+  int fd = open(path, O_RDONLY);
+  if (fd == -1) {
+    return 0;
+  }
 
-	struct stat Statbuf;
-	fstat(fd, &Statbuf);
+  struct stat Statbuf;
+  fstat(fd, &Statbuf);
 
-	char *Base = mmap(NULL, Statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-	if (Base == NULL) {
-		close(fd);
-		return 0;
-	}
+  char *Base = mmap(NULL, Statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  if (Base == NULL) {
+    close(fd);
+    return 0;
+  }
 
-	Elf64_Ehdr *Header = (Elf64_Ehdr*)Base;
+  Elf64_Ehdr *Header = (Elf64_Ehdr*)Base;
 
-	if (Header->e_ident[0] != 0x7f
-		|| Header->e_ident[1] != 'E'
-		|| Header->e_ident[2] != 'L'
-		|| Header->e_ident[3] != 'F')
-	{
-		goto out;
-	}
+  if (Header->e_ident[0] != 0x7f
+      || Header->e_ident[1] != 'E'
+      || Header->e_ident[2] != 'L'
+      || Header->e_ident[3] != 'F')
+  {
+    goto out;
+  }
 
-	int i;
-	Elf64_Shdr *Shdr = (Elf64_Shdr*)(Base + Header->e_shoff);
-	char *Strtab = Base + Shdr[Header->e_shstrndx].sh_offset;
+  int i;
+  Elf64_Shdr *Shdr = (Elf64_Shdr*)(Base + Header->e_shoff);
+  char *Strtab = Base + Shdr[Header->e_shstrndx].sh_offset;
 
-	for (i = 0; i < Header->e_shnum; i++)
-	{
-		char *Name = Strtab + Shdr[i].sh_name;
-		if (!strncmp(Name, ".data", 6))
-		{
-			DsecSz += Shdr[i].sh_size;
-		}
-		if (!strncmp(Name, ".bss", 5))
-		{
-			DsecSz += Shdr[i].sh_size;
-		}
-	}
+  for (i = 0; i < Header->e_shnum; i++)
+  {
+    char *Name = Strtab + Shdr[i].sh_name;
+    if (!strncmp(Name, ".data", 6))
+    {
+      DsecSz += Shdr[i].sh_size;
+    }
+    if (!strncmp(Name, ".bss", 5))
+    {
+      DsecSz += Shdr[i].sh_size;
+    }
+  }
 
 out:
-	munmap(Base, Statbuf.st_size);
-	close(fd);
-	return DsecSz;
+  munmap(Base, Statbuf.st_size);
+  close(fd);
+  return DsecSz;
 }

@@ -52,39 +52,39 @@ int main(int argc, char *argv[]) {
 
   for (i = 0; i < size; i++) {
     create_record(&record_arr[i], i);
-		record_arr[i].loc.lat = (0.03) * i * i;
-		record_arr[i].loc.lon = (-0.02) * i * i;
+    record_arr[i].loc.lat = (0.03) * i * i;
+    record_arr[i].loc.lon = (-0.02) * i * i;
   }
   printf("adding %d records took %ld ms.\n", size, end_time(&start));
-  
+
   checksum = compute_checksum_record_arr(record_arr, size);
 
   start_time(&start);
-	for (i = 0; i < size; i++) {
-		for (j = 0; j < MAX_PARTITION; j++) {
-			k = generate_part_uid(uid, i, j, size);
-			if (k != -1) {
-				ret = make_friends(&record_arr[i], &record_arr[k]);
+  for (i = 0; i < size; i++) {
+    for (j = 0; j < MAX_PARTITION; j++) {
+      k = generate_part_uid(uid, i, j, size);
+      if (k != -1) {
+        ret = make_friends(&record_arr[i], &record_arr[k]);
         assert(ret == 0);
-				check_sum_arr[i] += record_arr[k].uid[0];
-				check_sum_arr[k] += record_arr[i].uid[0];
+        check_sum_arr[i] += record_arr[k].uid[0];
+        check_sum_arr[k] += record_arr[i].uid[0];
         num_friends += 2;
-			}
-		}
-		j = get_rand(i, MAX_PARTITION);
-		k = generate_part_uid(uid, i, j, size);
-		if (k != -1) {
-			ret = make_friends(&record_arr[i], &record_arr[k]);
-			assert(ret == 1);
-		}
-	}
+      }
+    }
+    j = get_rand(i, MAX_PARTITION);
+    k = generate_part_uid(uid, i, j, size);
+    if (k != -1) {
+      ret = make_friends(&record_arr[i], &record_arr[k]);
+      assert(ret == 1);
+    }
+  }
   printf("making %d friends took %ld ms.\n", num_friends, end_time(&start));
 
   start_time(&start);
-	for (i = 0; i < size; i++) {
+  for (i = 0; i < size; i++) {
     for (j = 0; j < size; j++) {
-		  friends = get_friends_list(&record_arr[i]);
-		  verify_checksum_flist(check_sum_arr[i], friends);
+      friends = get_friends_list(&record_arr[i]);
+      verify_checksum_flist(check_sum_arr[i], friends);
     }
     verify_memory_usage_graph(num_friends);
     check_status_and_verify(record_arr, size);
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   }
   printf("computing all shortest paths took %ld ms.\n", end_time(&start));
 
-	for (i = 0; i < size; i++) {
+  for (i = 0; i < size; i++) {
     delete_friends_list(&record_arr[i]);
   }
 
