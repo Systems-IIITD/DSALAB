@@ -5,6 +5,7 @@
 // don't remove these globals
 struct heap_elem *min_heap_arr = NULL;
 
+
 // don't modify this function
 void initialize_min_heap_arr(struct heap_elem *arr)
 {
