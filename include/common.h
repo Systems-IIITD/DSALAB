@@ -39,6 +39,9 @@ struct record {
 
   int age;
 
+  /* used for verification */
+  int verify;
+
   /* location */
   struct location loc;
 
@@ -51,6 +54,7 @@ struct record {
   /* needed for shortest Path */
   int status;
   struct record *pred;
+  double distance;
 
   /* needed for the tree data-structure */
   int height;
@@ -100,6 +104,10 @@ struct list_records {
   struct list_records *next;
 };
 
+struct heap_elem {
+	struct record *r;
+};
+
 void *__mymalloc(size_t size);
 void __myfree(void *ptr);
 size_t __get_size(void *ptr);
@@ -133,6 +141,15 @@ int get_checksum_str(char msg[MAX_MSG_LEN]);
 void verify_checksum_str(size_t *check_sum_arr, int id, size_t checksum);
 void update_checksum_str(size_t *check_sum_arr, int id, size_t checksum);
 void enable_pa3();
+void enable_pa4();
 int read_vid(char msg[MAX_MSG_LEN]);
+void verify_sssp(struct record *r);
+void verify_sssp1(struct record *r);
+void reset_verify(struct record *r);
+void check_integrity_record_arr(struct record *record_arr, int size, double checksum);
+double compute_checksum_record_arr(struct record *record_arr, int size);
+void check_status_and_verify(struct record *record_arr, int size);
+size_t getDataSecSz(char *path);
+void verify_memory_usage_graph(size_t num_friends);
 
 #endif

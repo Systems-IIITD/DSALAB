@@ -128,6 +128,11 @@ void enable_pa3() {
   pa3_enabled = 1;
 }
 
+int pa4_enabled = 0;
+void enable_pa4() {
+  pa4_enabled = 1;
+}
+
 void *__mymalloc(size_t size)
 {
   if (pa3_enabled == 1) {
@@ -139,6 +144,14 @@ void *__mymalloc(size_t size)
       assert(0);
     }
   }
+
+  if (pa4_enabled == 1) {
+    if (size != sizeof(struct list_records)) {
+      printf("Allocations are only allowed for struct list_records\n");
+      assert(0);
+    }
+  }
+
   struct obj_header *obj = (struct obj_header*)malloc(size + sizeof(struct obj_header));
   if (obj == NULL) {
     printf("allocation faild: size:%zd\n", size);
@@ -681,8 +694,8 @@ void verify_memory_usage_tree(size_t size, size_t num_friends)
   size_t total_alloc = (size * sizeof(struct record)) + (num_friends * sizeof(struct list_records));
 
   if (total_allocations != total_alloc) {
-    printf("expected memory allocation: %zd bytes\n", total_allocations);
-    printf("actual allocations: %zd bytes\n", total_alloc);
+    printf("expected memory allocation: %zd bytes\n", total_alloc);
+    printf("actual allocations: %zd bytes\n", total_allocations);
     printf("Use allocate_memory and free_mmeory APIs to allocate and free nodes for tree\n");
     printf("Use allocate_memory and free_mmeory APIs to allocate and free nodes for the nodes in friend list\n");
     assert(0);
@@ -713,4 +726,178 @@ void verify_checksum_str(size_t *check_sum_arr, int id, size_t checksum) {
 
 void update_checksum_str(size_t *check_sum_arr, int id, size_t checksum) {
   check_sum_arr[id] += checksum;
+}
+
+void verify_sssp(struct record *r)
+{
+	struct list_records *lr = r->friends;
+  struct record *t;
+  double dist;
+  int visited;
+
+  r->status = 0;
+
+	while (lr) {
+    t = lr->record;
+    dist = r->distance + distance(&r->loc, &t->loc);
+    assert(t->distance <= dist);
+    visited = t->verify != 0;
+    if (t->verify != 2) {
+      t->verify = (t->distance == dist) ? 2 : 1;
+    }
+		if (!visited) {
+      verify_sssp(t);
+		}
+		lr = lr->next;
+	}
+}
+
+void verify_sssp1(struct record *r)
+{
+	struct list_records *lr = r->friends;
+  struct record *t;
+  int visited;
+
+	while (lr) {
+    t = lr->record;
+    visited = t->verify == 3;
+    assert(t->verify >= 2);
+    if (t->verify == 2) {
+      t->verify = 3;
+    }
+		if (!visited) {
+      verify_sssp1(t);
+		}
+		lr = lr->next;
+	}
+}
+
+static void verify_path(struct record *r)
+{
+  double dist = r->distance;
+  struct record *pred = r->pred;
+  while (pred != NULL) {
+    dist -= distance(&pred->loc, &r->loc);
+    assert(dist >= -0.1);
+    r = pred;
+    pred = r->pred;
+  }
+  assert((int)dist == 0);
+}
+
+void reset_verify(struct record *r)
+{
+	struct list_records *lr = r->friends;
+  struct record *t;
+
+  r->verify = 0;
+  assert(r->status == 0);
+	while (lr) {
+    t = lr->record;
+		if (t->verify != 0) {
+      verify_path(t);
+      reset_verify(t);
+		}
+		lr = lr->next;
+	}
+}
+
+void check_status_and_verify(struct record *record_arr, int size)
+{
+  int i;
+  for (i = 0; i < size; i++) {
+    assert(record_arr[i].status == 0);
+    assert(record_arr[i].verify == 0);
+  }
+}
+
+double compute_checksum_record_arr(struct record *record_arr, int size)
+{
+  double ret = 0;
+  int i;
+  for (i = 0; i < size; i++) {
+    ret += (i+1) * (record_arr[i].loc.lat + record_arr[i].loc.lon);
+  }
+  return ret;
+}
+
+void check_integrity_record_arr(struct record *record_arr, int size, double checksum)
+{
+  assert(checksum == compute_checksum_record_arr(record_arr, size));
+}
+
+void verify_memory_usage_graph(size_t num_friends)
+{
+  size_t total_alloc = num_friends * sizeof(struct list_records);
+
+  if (total_allocations != total_alloc) {
+    printf("expected memory allocation: %zd bytes\n", total_alloc);
+    printf("actual allocations: %zd bytes\n", total_allocations);
+    printf("Use allocate_memory and free_mmeory APIs to allocate and free nodes for the nodes in friend list\n");
+    assert(0);
+  }
+}
+
+#include <elf.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+
+
+size_t getDataSecSz(char *path)
+{
+	static size_t DsecSz = 0;
+
+	if (DsecSz != 0)
+	{
+		return DsecSz;
+	}
+
+	int fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		return 0;
+	}
+
+	struct stat Statbuf;
+	fstat(fd, &Statbuf);
+
+	char *Base = mmap(NULL, Statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	if (Base == NULL) {
+		close(fd);
+		return 0;
+	}
+
+	Elf64_Ehdr *Header = (Elf64_Ehdr*)Base;
+
+	if (Header->e_ident[0] != 0x7f
+		|| Header->e_ident[1] != 'E'
+		|| Header->e_ident[2] != 'L'
+		|| Header->e_ident[3] != 'F')
+	{
+		goto out;
+	}
+
+	int i;
+	Elf64_Shdr *Shdr = (Elf64_Shdr*)(Base + Header->e_shoff);
+	char *Strtab = Base + Shdr[Header->e_shstrndx].sh_offset;
+
+	for (i = 0; i < Header->e_shnum; i++)
+	{
+		char *Name = Strtab + Shdr[i].sh_name;
+		if (!strncmp(Name, ".data", 6))
+		{
+			DsecSz += Shdr[i].sh_size;
+		}
+		if (!strncmp(Name, ".bss", 5))
+		{
+			DsecSz += Shdr[i].sh_size;
+		}
+	}
+
+out:
+	munmap(Base, Statbuf.st_size);
+	close(fd);
+	return DsecSz;
 }
