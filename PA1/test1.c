@@ -10,14 +10,14 @@ int main(int argc, char *argv[]) {
   struct record r;
   char uid[MAX_LEN];
   struct timeval start;
-	size_t chksum = 0;
+  size_t chksum = 0;
 
-	printf("\nRunning TEST1 for %d inputs\n", size);
+  printf("\nRunning TEST1 for %d inputs\n", size);
 
   start_time(&start);
   for (i = 0; i < size; i++) {
     create_uid_new(uid, i);
-		chksum += uid[0];
+    chksum += uid[0];
   }
   printf("Creating %d uids took %ld ms.\n", size, end_time(&start));
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     insert_record(r);
   }
   assert(get_num_records() == size);
-	verify_chksum(get_record_arr(), size, chksum);
+  verify_chksum(get_record_arr(), size, chksum);
   printf("adding %d records took %ld ms.\n", size, end_time(&start));
 
   for (i = size; i < size + 1000; i++) {
@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
     create_uid(uid, i, 0);
     r = delete_record(uid);
     if (r.status != INVALID_STATUS) {
-			printf("if the record is not present: set status to -1\n");
-			assert(0);
-		}
+      printf("if the record is not present: set status to -1\n");
+      assert(0);
+    }
   }
 
   start_time(&start);
@@ -53,16 +53,16 @@ int main(int argc, char *argv[]) {
     create_uid(uid, i, 0);
     r = delete_record(uid);
     assert(r.status != INVALID_STATUS);
-		if (i < 1000) {
-			chksum -= uid[0];
-			verify_chksum(get_record_arr(), size-i-1, chksum);
-		}
+    if (i < 1000) {
+      chksum -= uid[0];
+      verify_chksum(get_record_arr(), size-i-1, chksum);
+    }
   }
   assert(get_num_records() == 0);
   printf("deleting %d records took %ld ms.\n", size, end_time(&start));
 
   verify_memory_leak();
 
-	printf("TEST-1 successful\n\n");
+  printf("TEST-1 successful\n\n");
   return 0;
 }

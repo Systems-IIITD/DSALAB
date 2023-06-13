@@ -16,15 +16,15 @@ int main(int argc, char *argv[]) {
   size_t checkpoint;
   size_t check_sum = 0;
   size_t cs = 0;
-	size_t *check_sum_arr = NULL;
-	int tidx;
-	struct list_records *friends;
-	int ret;
-	size_t total_friends_nodes = 0;
+  size_t *check_sum_arr = NULL;
+  int tidx;
+  struct list_records *friends;
+  int ret;
+  size_t total_friends_nodes = 0;
 
-	check_sum_arr = (size_t*)malloc(size * sizeof(size_t));
-	assert(check_sum_arr);
-	memset(check_sum_arr, 0, size * sizeof(size_t));
+  check_sum_arr = (size_t*)malloc(size * sizeof(size_t));
+  assert(check_sum_arr);
+  memset(check_sum_arr, 0, size * sizeof(size_t));
 
   start_time(&start);
   for (i = 0; i < size; i++) {
@@ -42,10 +42,10 @@ int main(int argc, char *argv[]) {
     insert_record_bst(r);
     if (i == checkpoint) {
       cs = check_bst_property(get_bst_root());
-  		if (cs != check_sum) {
-    		printf("Integrity was violated\n");
-    		assert(0);
-  		}
+      if (cs != check_sum) {
+        printf("Integrity was violated\n");
+        assert(0);
+      }
       checkpoint *= 2;
     }
   }
@@ -61,22 +61,22 @@ int main(int argc, char *argv[]) {
 
   for (i = 0; i < size; i++) {
     create_uid(uid, i, 0);
-		for (j = 0; j < MAX_PARTITION; j++) {
-			tidx = generate_part_uid(fuid, i, j, size);
-			if (tidx != -1) {
-				ret = make_friends_bst(uid, fuid);
-				assert(ret == 0);
-				check_sum_arr[i] += fuid[0];
-				check_sum_arr[tidx] += uid[0];
-				total_friends_nodes += 2;
-			}
-		}
-		j = get_rand(i, MAX_PARTITION);
-		tidx = generate_part_uid(fuid, i, j, size);
-		if (tidx != -1) {
-			ret = make_friends_bst(uid, fuid);
-			assert(ret == 1);
-		}
+    for (j = 0; j < MAX_PARTITION; j++) {
+      tidx = generate_part_uid(fuid, i, j, size);
+      if (tidx != -1) {
+        ret = make_friends_bst(uid, fuid);
+        assert(ret == 0);
+        check_sum_arr[i] += fuid[0];
+        check_sum_arr[tidx] += uid[0];
+        total_friends_nodes += 2;
+      }
+    }
+    j = get_rand(i, MAX_PARTITION);
+    tidx = generate_part_uid(fuid, i, j, size);
+    if (tidx != -1) {
+      ret = make_friends_bst(uid, fuid);
+      assert(ret == 1);
+    }
   }
   printf("making %zd friends took %ld ms.\n", total_friends_nodes, end_time(&start));
 
@@ -93,9 +93,9 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < size; i+=2) {
     assert(get_num_bst_records() == size - iter);
     create_uid(uid, i, 0);
-		friends = get_friends_list_bst(uid);
-		verify_checksum_flist(check_sum_arr[i], friends);
-		update_checksum_flist(check_sum_arr, size, friends, uid);
+    friends = get_friends_list_bst(uid);
+    verify_checksum_flist(check_sum_arr[i], friends);
+    update_checksum_flist(check_sum_arr, size, friends, uid);
     r = delete_record_bst(uid);
     check_sum -= r.uid[0];
     assert(r.status != -1);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
   destroy_bst();
   verify_memory_leak();
 
-	printf("Test-case-2 passed\n");
+  printf("Test-case-2 passed\n");
 
   return 0;
 }
