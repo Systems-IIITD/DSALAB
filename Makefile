@@ -1,6 +1,6 @@
 SRCS = $(wildcard *.c)
 DSTS = $(patsubst %.c, %, $(SRCS))
-SUBDIRS = $(shell find -type d -not -path "./include")
+SUBDIRS = $(shell find -type d -not -path "./include" -not -path "./.git*")
 SUBDIRS_CLEAN = $(addsuffix .clean, $(SUBDIRS))
 
 default: $(DSTS)
@@ -14,8 +14,7 @@ clean: $(SUBDIRS_CLEAN)
 	rm -rf $(DSTS) a.out
 
 %.clean : %
-	echo $<
 	rm -f `find -iname cscope.out`
-	rm -f `find -iname tags`
+	rm -f `find -iname tags -not -path "./.git*"`
 	rm -f `find -iname *.so`
 	make -C $< clean
